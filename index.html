@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Underworld Market</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #09090b;
+            --panel-bg: #18181b;
+            --neon-blue: #00f3ff;
+            --neon-blue-glow: rgba(0, 243, 255, 0.3);
+            --rare-blue: #3b82f6;
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            /* Запрещаем выделение текста как в настоящих приложениях */
+            user-select: none; 
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Шапка с профилем */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(0, 243, 255, 0.1) 0%, var(--bg-dark) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #username {
+            font-weight: 900;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px var(--neon-blue-glow);
+        }
+
+        .balance {
+            color: #fbbf24; /* Цвет золота */
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        /* Основной контент (вкладки) */
+        main {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Карточки товаров на рынке */
+        .market-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .item-card {
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .item-card:active {
+            transform: scale(0.95);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 80px;
+            background-color: #27272a;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            /* Рамка редкости (синяя) */
+            border-bottom: 3px solid var(--rare-blue);
+        }
+
+        .item-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .item-price {
+            color: #fbbf24;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .buy-btn {
+            background: transparent;
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+            padding: 8px 0;
+            width: 100%;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            box-shadow: 0 0 10px var(--neon-blue-glow);
+            transition: all 0.2s;
+        }
+
+        .buy-btn:active {
+            background: var(--neon-blue);
+            color: var(--bg-dark);
+        }
+
+        /* Нижняя навигация */
+        .bottom-nav {
+            display: flex;
+            background-color: var(--panel-bg);
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: env(safe-area-inset-bottom, 15px); /* Для iPhone */
+        }
+
+        .nav-btn {
+            flex: 1;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: color 0.2s;
+        }
+
+        .nav-btn.active {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue-glow);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="user-info">
+            <div id="username">Агент</div>
+            <div class="balance">💰 <span id="gold-balance">150.00</span> G</div>
+        </div>
+    </header>
+
+    <main>
+        <div id="market-tab" class="tab-content active">
+            <div class="market-grid">
+                <div class="item-card">
+                    <div class="item-image"></div>
+                    <div class="item-name">G22 | Flock</div>
+                    <div class="item-price">192.12 G</div>
+                    <button class="buy-btn" onclick="buyItem('G22 | Flock', 192.12)">Купить</button>
+                </div>
+                
+                <div class="item-card">
+                    <div class="item-image" style="border-bottom-color: #ef4444;"></div>
+                    <div class="item-name">AKR | Neon</div>
+                    <div class="item-price">450.00 G</div>
+                    <button class="buy-btn" onclick="buyItem('AKR | Neon', 450.00)">Купить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="inventory-tab" class="tab-content">
+            <div style="text-align: center; color: var(--text-muted); margin-top: 50px;">
+                <h3 style="margin-bottom: 10px;">Инвентарь пуст</h3>
+                <p style="font-size: 0.8rem;">Купите скины на рынке, чтобы они появились здесь.</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="bottom-nav">
+        <div class="nav-btn active" onclick="switchTab('market')">Рынок</div>
+        <div class="nav-btn" onclick="switchTab('inventory')">Инвентарь</div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        
+        // Расширяем приложение на весь экран телефона
+        tg.expand();
+
+        // Подтягиваем имя пользователя из Telegram
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
+        }
+
+        // Функция переключения вкладок внизу
+        function switchTab(tabName) {
+            // Вибрация при нажатии (работает на телефонах)
+            tg.HapticFeedback.impactOccurred('light');
+
+            // Убираем активность со всех кнопок и вкладок
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+            // Включаем нужную
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Подсвечиваем кнопку в меню
+            const buttons = document.querySelectorAll('.nav-btn');
+            if (tabName === 'market') buttons[0].classList.add('active');
+            if (tabName === 'inventory') buttons[1].classList.add('active');
+        }
+
+        // Функция покупки предмета
+        function buyItem(itemName, price) {
+            // Вибрация-подтверждение
+            tg.HapticFeedback.notificationOccurred('success');
+            
+            // Показываем нативное всплывающее окно Telegram
+            tg.showConfirm(`Вы уверены, что хотите купить ${itemName} за ${price} G?`, function(confirmed) {
+                if (confirmed) {
+                    // Если игрок нажал "ОК"
+                    tg.showAlert(`✅ Вы успешно приобрели ${itemName}!`);
+                    
+                    // Здесь в будущем можно отправлять данные обратно боту
+                    /*
+                    tg.sendData(JSON.stringify({
+                        action: 'buy',
+                        item: itemName,
+                        price: price
+                    }));
+                    */
+                }
+            });
+        }
+        
+        // Говорим Telegram, что наше приложение полностью загрузилось и готово к показу
+        tg.ready();
+    </script>
+</body>
+</html>
